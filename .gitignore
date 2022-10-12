@@ -8,3 +8,4 @@ docs/.vuepress/dist
 .history
 .vs
 .vscode
+src/test.json

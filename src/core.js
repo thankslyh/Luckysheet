@@ -70,8 +70,10 @@ luckysheet.create = function (setting) {
         title = extendsetting.title;
 
     let container = extendsetting.container;
+    console.log('extendsetting', extendsetting)
     Store.container = container;
     Store.luckysheetfile = extendsetting.data;
+    Store.definedNamesMap = extendsetting.definedNames;
     Store.defaultcolumnNum = extendsetting.column;
     Store.defaultrowNum = extendsetting.row;
     Store.defaultFontSize = extendsetting.defaultFontSize;

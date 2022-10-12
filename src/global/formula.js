@@ -418,7 +418,7 @@ const luckysheetformula = {
             for (let c = 0; c < range[0].length; c++) {
                 if (range[0][c] != null && range[0][c].v) {
                     rangeNow.push(range[0][c].v);
-                    let f = range[0][c].ct.fa;
+                    let f = range[r][0].ct ? range[r][0].ct.fa : fmt;
                     fmt = (fmt == "General") ? f : fmt;
                 }
                 else {
@@ -431,7 +431,7 @@ const luckysheetformula = {
             for (let r = 0; r < range.length; r++) {
                 if (range[r][0] != null && range[r][0].v) {
                     rangeNow.push(range[r][0].v);
-                    let f = range[r][0].ct.fa;
+                    let f = range[r][0].ct ? range[r][0].ct.fa : fmt;
                     fmt = (fmt == "General") ? f : fmt;
                 }
                 else {
@@ -444,7 +444,7 @@ const luckysheetformula = {
                 for (let c = 0; c < range[r].length; c++) {
                     if (range[r][c] != null && range[r][c].v) {
                         rangeNow.push(range[r][c].v);
-                        let f = range[r][c].ct.fa;
+                        let f = range[r][0].ct ? range[r][0].ct.fa : fmt;
                         fmt = (fmt == "General") ? f : fmt;
                     }
                     else {
@@ -1240,7 +1240,7 @@ const luckysheetformula = {
         });
     },
     updatecell: function (r, c, value, isRefresh = true) {
-
+        console.log('update cell')
         let _this = this;
 
         let $input = $("#luckysheet-rich-text-editor");
@@ -1360,7 +1360,7 @@ const luckysheetformula = {
 
         let d = editor.deepCopyFlowData(Store.flowdata);
         let dynamicArrayItem = null;  //动态数组
-
+        console.log('isCurInline', isCurInline)
         if (getObjType(curv) == "object") {
 
             if (!isCurInline) {
@@ -1463,6 +1463,7 @@ const luckysheetformula = {
 
                 }
                 else {
+                    console.log('单元格change')
                     _this.delFunctionGroup(r, c);
                     _this.execFunctionGroup(r, c, value);
                     isRunExecFunction = false;
@@ -1701,13 +1702,11 @@ const luckysheetformula = {
             rangetxt = val[0];
         }
 
-        let reg_cell = /^(([a-zA-Z]+)|([$][a-zA-Z]+))(([0-9]+)|([$][0-9]+))$/g; //增加正则判断单元格为字母+数字的格式：如 A1:B3
+        let reg_cell = /^(([a-zA-Z]+)|([$][a-zA-Z]+))(_?)(([0-9]+)|([$][0-9]+))$/g; //增加正则判断单元格为字母+数字的格式：如 A1:B3
         let reg_cellRange = /^(((([a-zA-Z]+)|([$][a-zA-Z]+))(([0-9]+)|([$][0-9]+)))|((([a-zA-Z]+)|([$][a-zA-Z]+))))$/g; //增加正则判断单元格为字母+数字或字母的格式：如 A1:B3，A:A
-
         if (rangetxt.indexOf(":") == -1) {
             let row = parseInt(rangetxt.replace(/[^0-9]/g, "")) - 1;
             let col = ABCatNum(rangetxt.replace(/[^A-Za-z]/g, ""));
-
             if (!isNaN(row) && !isNaN(col) && rangetxt.toString().match(reg_cell)) {
                 return true;
             }
@@ -1722,7 +1721,7 @@ const luckysheetformula = {
             }
         }
         else {
-            reg_cellRange = /^(((([a-zA-Z]+)|([$][a-zA-Z]+))(([0-9]+)|([$][0-9]+)))|((([a-zA-Z]+)|([$][a-zA-Z]+)))|((([0-9]+)|([$][0-9]+s))))$/g;
+            reg_cellRange = /^(((([a-zA-Z]+)|([$][a-zA-Z]+))(_?)(([0-9]+)|([$][0-9]+)))|((([a-zA-Z]+)|([$][a-zA-Z]+)))|((([0-9]+)|([$][0-9]+s))))$/g;
 
             rangetxt = rangetxt.split(":");
 
@@ -1746,6 +1745,24 @@ const luckysheetformula = {
                 return false;
             }
         }
+    },
+    // 判断是否是存在别名里
+    isDefinedName: function (txt = '') {
+        return !!Store.definedNamesMap[txt]
+    },
+    replaceDefinedNameToRef: function (txt = '') {
+        const txts = txt.split(':')
+        return txts.map(t => {
+            if (this.isDefinedName(t)) {
+                const ref = Store.definedNamesMap[t].ref
+                if (ref.indexOf('!') < 0) return ref
+                // ex: 输入 '2 Key Assumption 报价主要假设'!$F$31
+                // 返回 $F$31
+                // 包含叹号，说明是关联的sheet单元格，返回单元格即可
+                return ref.split('!')[1]
+            }
+            return t
+        }).join(':')
     },
     operator: '==|!=|<>|<=|>=|=|+|-|>|<|/|*|%|&|^',
     operatorjson: null,
@@ -3827,6 +3844,7 @@ const luckysheetformula = {
         "-": 2
     },
     functionParserExe: function (txt) {
+        console.log('txt', txt)
         let _this = this;
         // let txt1 = txt.toUpperCase();
         // return this.functionParser(txt, function(c){
@@ -3897,8 +3915,8 @@ const luckysheetformula = {
         let cal1 = [], cal2 = [], bracket = [];
         let firstSQ = -1;
         while (i < funcstack.length) {
+            let preNum = false
             let s = funcstack[i];
-
             if (s == "(" && matchConfig.squote == 0 && matchConfig.dquote == 0 && matchConfig.braces == 0) {
                 if (str.length > 0 && bracket.length == 0) {
                     str = str.toUpperCase();
@@ -4005,15 +4023,29 @@ const luckysheetformula = {
             else if (s in _this.operatorjson && matchConfig.squote == 0 && matchConfig.dquote == 0 && matchConfig.braces == 0) {
                 let s_next = "";
                 let op = _this.operatorPriority;
-
                 if ((i + 1) < funcstack.length) {
                     s_next = funcstack[i + 1];
+                    if (s === '%' && s_next in _this.operatorjson) {
+                        preNum = true
+                        str += s
+                        str = parseInt(str) / 100
+                    }
+                }
+                // 最后一位是%
+                if ((i + 1) === funcstack.length && s === '%') {
+                    preNum = true
+                    str += s
+                    str = parseInt(str) / 100
                 }
 
                 if ((s + s_next) in _this.operatorjson) {
                     if (bracket.length == 0) {
                         if ($.trim(str).length > 0) {
-                            cal2.unshift(_this.functionParser($.trim(str), cellRangeFunction));
+                            if (preNum) {
+                                cal2.unshift($.trim(str));
+                            } else {
+                                cal2.unshift(_this.functionParser($.trim(str), cellRangeFunction));
+                            }
                         }
                         else if ($.trim(function_str).length > 0) {
                             cal2.unshift($.trim(function_str));
@@ -4028,7 +4060,9 @@ const luckysheetformula = {
                             }
                         }
 
-                        cal1.unshift(s + s_next);
+                        if (!preNum) {
+                            cal1.unshift(s + s_next);
+                        }
 
                         function_str = "";
                         str = "";
@@ -4042,7 +4076,11 @@ const luckysheetformula = {
                 else {
                     if (bracket.length == 0) {
                         if ($.trim(str).length > 0) {
-                            cal2.unshift(_this.functionParser($.trim(str), cellRangeFunction));
+                            if (preNum) {
+                                cal2.unshift($.trim(str))
+                            } else {
+                                cal2.unshift(_this.functionParser($.trim(str), cellRangeFunction));
+                            }
                         }
                         else if ($.trim(function_str).length > 0) {
                             cal2.unshift($.trim(function_str));
@@ -4063,7 +4101,9 @@ const luckysheetformula = {
                             }
                         }
 
-                        cal1.unshift(s);
+                        if (!preNum) {
+                            cal1.unshift(s);
+                        }
 
                         function_str = "";
                         str = "";
@@ -4083,10 +4123,10 @@ const luckysheetformula = {
                 }
             }
 
-            if (i == funcstack.length - 1) {
+            if (i >= funcstack.length - 1) {
                 let endstr = "";
                 let str_nb = $.trim(str).replace(/'/g, "\\'");
-                if (_this.iscelldata(str_nb) && str_nb.substr(0, 1) != ":") {
+                if (_this.iscelldata(str_nb) && str_nb.substr(0, 1) != ":" || _this.isDefinedName(str_nb)) {
 
                     endstr = "luckysheet_getcelldata('" + str_nb + "')";
                     if (typeof (cellRangeFunction) == "function") {
@@ -4125,7 +4165,12 @@ const luckysheetformula = {
                 }
 
                 if (endstr.length > 0) {
-                    cal2.unshift(endstr);
+                    // console.log('endstr\n', endstr)
+                    if (endstr.indexOf(':') > 0 && endstr.indexOf('luckysheet_getcelldata') < 0) {
+                        cal2.unshift(JSON.stringify(endstr));
+                    } else {
+                        cal2.unshift(endstr);
+                    }
                 }
 
                 if (cal1.length > 0) {
@@ -4209,7 +4254,7 @@ const luckysheetformula = {
         for (let i = 0; i < luckysheetfile.length; i++) {
             let file = luckysheetfile[i];
             let calcChain = file.calcChain;
-            
+
             /* 备注：再次加载表格获取的数据可能是JSON字符串格式(需要进行发序列化处理) */
             if(calcChain){
                 let tempCalcChain = [];
@@ -5281,9 +5326,9 @@ const luckysheetformula = {
                     if (t.substr(0, 1) == '"' && t.substr(t.length - 1, 1) == '"' && !_this.iscelldata(t)) {
                         continue;
                     }
-
-                    let range = _this.getcellrange($.trim(t), formulaCell.index);
-
+                    let trimT = $.trim(t)
+                    trimT = this.replaceDefinedNameToRef(trimT)
+                    let range = _this.getcellrange(trimT, formulaCell.index);
                     if (range == null) {
                         continue;
                     }
@@ -5320,7 +5365,7 @@ const luckysheetformula = {
             // }
 
         }
-
+        console.log('formulaObjects', formulaObjects)
         // console.timeEnd("1");
 
         // console.time("2");
@@ -5795,7 +5840,10 @@ const luckysheetformula = {
         }
 
         Store.calculateSheetIndex = index;
-
+        // // TODO
+        // if (txt === `=ROUNDUP(Timline_MW_1/12,0)`) {
+        //     debugger
+        // }
         let fp = $.trim(_this.functionParserExe(txt));
         //console.log(fp)
         if ((fp.substr(0, 20) == "luckysheet_function." || fp.substr(0, 22) == "luckysheet_compareWith")) {
@@ -5803,7 +5851,7 @@ const luckysheetformula = {
         }
 
         if (!_this.testFunction(txt, fp) || fp == "") {
-            tooltip.info("", locale_formulaMore.execfunctionError);
+            // tooltip.info("", locale_formulaMore.execfunctionError);
             return [false, _this.error.n, txt];
         }
 
@@ -5842,8 +5890,10 @@ const luckysheetformula = {
                     }
                 }
             }
-
             result = new Function("return " + fp)();
+            if (result === '#VALUE!') {
+                console.log('result error', '#VALUE!')
+            }
             if (typeof (result) == "string") {//把之前的非打印控制字符DEL替换回一个双引号。
                 result = result.replace(/\x7F/g, '"');
             }

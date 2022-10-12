@@ -5,6 +5,7 @@ import locale from '../locale/locale';
 
 const functionlist = function(customFunctions){
     let _locale = locale();
+    console.log(_locale.functionlist)
     // internationalization,get function list
     let functionListOrigin = [..._locale.functionlist];
 

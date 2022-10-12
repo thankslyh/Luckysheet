@@ -37,13 +37,21 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.12.1",
+    "browserify": "^17.0.0",
     "dayjs": "^1.9.6",
     "esbuild": "^0.11.6",
     "escape-html": "^1.0.3",
+    "fancy-log": "^2.0.0",
     "flatpickr": "^4.6.6",
+    "gulp-sourcemaps": "^3.0.0",
     "jquery": "^2.2.4",
     "numeral": "^2.0.6",
-    "pako": "^1.0.11"
+    "pako": "^1.0.11",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "tsify": "^5.0.4",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^4.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production gulp build",
