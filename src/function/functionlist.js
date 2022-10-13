@@ -5,7 +5,6 @@ import locale from '../locale/locale';
 
 const functionlist = function(customFunctions){
     let _locale = locale();
-    console.log(_locale.functionlist)
     // internationalization,get function list
     let functionListOrigin = [..._locale.functionlist];
 
@@ -20,7 +19,7 @@ const functionlist = function(customFunctions){
     }
 
     Store.functionlist = functionListOrigin;
-    
+
     // get n property
     const luckysheet_function = {};
 
@@ -30,7 +29,7 @@ const functionlist = function(customFunctions){
     }
 
     window.luckysheet_function = luckysheet_function; //Mount window for eval() calculation formula
-    
+
     Store.luckysheet_function = luckysheet_function;
 }
 

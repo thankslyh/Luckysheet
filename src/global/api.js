@@ -5175,6 +5175,7 @@ export function setSheetShow(options = {}) {
  * @param {Number} order 要激活的工作表下标
  * @param {Object} options 可选参数
  * @param {Function} options.success 操作结束的回调函数
+ * @param {Array} options.data 要更新的数据
  */
 export function setSheetActive(order, options = {}) {
     if(order == null || !isRealNum(order) || Store.luckysheetfile[order] == null){
@@ -5184,13 +5185,17 @@ export function setSheetActive(order, options = {}) {
     let file = Store.luckysheetfile[order];
 
     let {
+        data,
         success
     } = {...options}
 
     $("#luckysheet-sheet-area div.luckysheet-sheets-item").removeClass("luckysheet-sheets-item-active");
     $("#luckysheet-sheets-item" + file.index).addClass("luckysheet-sheets-item-active");
-
-    sheetmanage.changeSheet(file.index);
+    if (data) {
+        sheetmanage.updateSheet(file.index, data);
+    } else {
+        sheetmanage.changeSheet(file.index);
+    }
 
     setTimeout(() => {
         if (success && typeof success === 'function') {
@@ -5484,7 +5489,7 @@ export function setSheetZoom(zoom, options = {}) {
         imageCtrl.images = currentSheet.images;
         imageCtrl.allImagesShow();
         imageCtrl.init();
-        
+
         zoomNumberDomBind();
         zoomRefreshView();
     }

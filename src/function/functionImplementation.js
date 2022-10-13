@@ -1725,7 +1725,7 @@ const functionImplementation = {
                     //根据第一个范围的长宽确定目标范围的末尾位置
                     row[1] = row[0] + rangeRow - 1;
                     col[1] = col[0] + rangeCol - 1;
-                    console.log(col, row)
+
                     //console.log(row[0],col[0],row[1],col[1]);
                     //末尾位置转化为sheet格式：如 F4
                     var real_ABC = chatatABC(col[1]);

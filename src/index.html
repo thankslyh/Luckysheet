@@ -25,8 +25,9 @@
 
 		<div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:80%;height:500px;left: 20%;top: 200px;bottom:0;right: 0;"></div>
 	</div> -->
-
-	<div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:100%;height:100%;left: 0px;top: 0px;">
+    <button id="cellChangeTarget">切换第四个sheet</button>
+    <button id="cellSetUnLock">设置单元格解禁</button>
+	<div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:100%;height:80%;left: 0px;top: 50px;">
 	</div>
 	<!-- demo feature, non-production use -->
 	<script src="./demoData/demoFeature.js"></script>
@@ -91,28 +92,80 @@
 					"sheetName": "'2 Key Assumption 报价主要假设'"
 				}
 			}
+			console.log('data.sheets', data.sheets)
 			luckysheet.create({
 					container: 'luckysheet', // luckysheet is the container id
           showinfobar: false,
-          data: [data.sheets[1]],
+                cellRightClickConfig: {
+                    copy: false, // 复制
+                    copyAs: false, // 复制为
+                    paste: false, // 粘贴
+                    insertRow: false, // 插入行
+                    insertColumn: false, // 插入列
+                    deleteRow: false, // 删除选中行
+                    deleteColumn: false, // 删除选中列
+                    deleteCell: false, // 删除单元格
+                    hideRow: true, // 隐藏选中行和显示选中行
+                    hideColumn: true, // 隐藏选中列和显示选中列
+                    rowHeight: false, // 行高
+                    columnWidth: false, // 列宽
+                    clear: false, // 清除内容
+                    matrix: false, // 矩阵操作选区
+                    sort: false, // 排序选区
+                    filter: false, // 筛选选区
+                    chart: false, // 图表生成
+                    image: false, // 插入图片
+                    link: false, // 插入链接
+                    data: false, // 数据验证
+                    cellFormat: false // 设置单元格格式
+                },
+          data: data.sheets.map(sheet => ({
+              ...sheet,
+              config: {
+                ...sheet.config,
+                  authority: {
+                      hintText: '禁止修改',
+                      sheet: 1
+                  }
+              },
+              hide: sheet.status === 0
+          })),
           title: data.info.name,
 					definedNames,
           userInfo: data.info.name.creator,
-          showsheetbar: true,
-          showtoolbar: true,
+          showsheetbar: false,
+          showtoolbar: false,
           lang: 'zh',
           plugins: ['chart'],
 					hook: {
 						cellUpdated(...args) {
               console.log(...args)
-							console.log(luckysheet.getAllSheets())
+							// console.log(luckysheet.getAllSheets())
               // console.log(luckysheet.getAllSheets())
             },
 					}
 			})
-            console.log(luckysheet)
 			// luckysheet.setSheetActive(1)
 		})
+        document.getElementById('cellChangeTarget').onclick = () => {
+		    // TODO 做缓存
+            const data = luckysheet.getSheetData({
+                order: 3
+            })
+            const tmpData = data.map((row) => row.map((cell) => {
+                if (!cell || !['#00B0F0', '#FFFF00'].includes(cell.bg)) {
+                    return cell
+                }
+                // console.log('cell', cell)
+                return {
+                    ...cell,
+                    lo: 0
+                }
+            }))
+            luckysheet.setSheetActive(3, {
+                data: tmpData
+            })
+        }
 		// import sheetFormula from './demoData/sheetFormula.js'
 		// import sheetCell from './demoData/sheetCell.js'
 		// import sheetConditionFormat from './demoData/sheetConditionFormat.js'

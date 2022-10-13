@@ -19,7 +19,6 @@ function luckysheet_compareWith() {
 
     //参数一
     let data_fp = arguments[0];
-    console.log('arguments', arguments)
     let fp;
     if(getObjType(data_fp) == "object" && data_fp.startCell != null){ //参数是选区
         if(sp == "&"){

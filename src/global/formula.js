@@ -1240,7 +1240,6 @@ const luckysheetformula = {
         });
     },
     updatecell: function (r, c, value, isRefresh = true) {
-        console.log('update cell')
         let _this = this;
 
         let $input = $("#luckysheet-rich-text-editor");
@@ -1360,7 +1359,6 @@ const luckysheetformula = {
 
         let d = editor.deepCopyFlowData(Store.flowdata);
         let dynamicArrayItem = null;  //动态数组
-        console.log('isCurInline', isCurInline)
         if (getObjType(curv) == "object") {
 
             if (!isCurInline) {
@@ -3844,7 +3842,6 @@ const luckysheetformula = {
         "-": 2
     },
     functionParserExe: function (txt) {
-        console.log('txt', txt)
         let _this = this;
         // let txt1 = txt.toUpperCase();
         // return this.functionParser(txt, function(c){
@@ -5891,9 +5888,7 @@ const luckysheetformula = {
                 }
             }
             result = new Function("return " + fp)();
-            if (result === '#VALUE!') {
-                console.log('result error', '#VALUE!')
-            }
+
             if (typeof (result) == "string") {//把之前的非打印控制字符DEL替换回一个双引号。
                 result = result.replace(/\x7F/g, '"');
             }
